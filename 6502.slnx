@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="cli6502/cli6502.vcxproj" Id="b9ed0373-2a28-4dc8-a63f-3c4485ecc2de">
+    <BuildDependency Project="cpu6502/cpu6502.vcxproj" />
+  </Project>
+  <Project Path="cpu6502/cpu6502.vcxproj" Id="2e4ef282-4bd6-4a68-afce-a983c87ded5e" />
+  <Project Path="test_cpu/test_cpu.vcxproj" Id="95a913ac-c92f-48d5-a251-9d8f0ced50fe">
+    <BuildDependency Project="cpu6502/cpu6502.vcxproj" />
+  </Project>
+</Solution>

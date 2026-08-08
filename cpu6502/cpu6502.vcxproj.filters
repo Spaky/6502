@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\bus.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpu6502.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\disassembler.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\instruction_set.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\bus.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cpu6502.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\disassembler.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\instruction_set.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{a023ec87-0427-4c2f-aebb-df497dc9ac38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{24d04a82-1db5-4ae5-a5bd-1b9fef51c5ee}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
