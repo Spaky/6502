@@ -539,6 +539,45 @@ static void test_disassembler()
     std::println("[PASS] test_disassembler ({} lines)", r.size());
 }
 
+static void test_disassembler_start_gt_stop()
+{
+    bus.clear();
+    cpu.connectBus(&bus);
+    bus.write(0x8000, 0xA9);
+    bus.write(0x8001, 0x42); // LDA #$42
+    bus.write(0x8002, 0x69);
+    bus.write(0x8003, 0x10); // ADC #$10
+    auto r = Disassembler::disassemble(bus, 0x8003, 0x8000);
+    assert(r.empty());
+    std::println("[PASS] test_disassembler_start_gt_stop ({} lines)", r.size());
+}
+
+static void test_disassembler_start_eq_stop()
+{
+    bus.clear();
+    cpu.connectBus(&bus);
+    bus.write(0x8000, 0xA9);
+    bus.write(0x8001, 0x42); // LDA #$42
+    bus.write(0x8002, 0x69);
+    bus.write(0x8003, 0x10); // ADC #$10
+    auto r = Disassembler::disassemble(bus, 0x8000, 0x8000);
+    assert(r.empty());
+    std::println("[PASS] test_disassembler_start_eq_stop ({} lines)", r.size());
+}
+
+static void test_disassembler_stop_at_0xFFFF()
+{
+    bus.clear();
+    cpu.connectBus(&bus);
+    // Place a two-byte instruction (LDA #$EA) whose second byte lands at 0xFFFF
+    bus.write(0xFFFE, 0xA9); // LDA
+    bus.write(0xFFFF, 0xEA); // #$EA
+    auto r = Disassembler::disassemble(bus, 0xFFFE, 0xFFFF);
+    assert(r.size() == 1);
+    assert(r.count(0xFFFE) == 1);
+    std::println("[PASS] test_disassembler_stop_at_0xFFFF ({} lines)", r.size());
+}
+
 int main()
 {
     std::println("=== 6502 CPU Unit Tests ===\n");
@@ -569,6 +608,9 @@ int main()
 
     std::println("\n-- Disassembler --");
     test_disassembler();
+    test_disassembler_start_gt_stop();
+    test_disassembler_start_eq_stop();
+    test_disassembler_stop_at_0xFFFF();
 
     std::println("\n=== ALL TESTS PASSED ===");
 
