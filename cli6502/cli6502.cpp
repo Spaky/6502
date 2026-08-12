@@ -1,6 +1,5 @@
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 #include <print>
 #include <string>
 #include <fstream>
@@ -156,7 +155,7 @@ int main(int argc, char* argv[])
         }
         catch(const std::exception& e)
         {
-            std::cerr << "Error: Invalid hex address: " << e.what() << "\n";
+            std::println(stderr, "Error: Invalid hex address: {}", e.what());
             retVal = 1;
         }
     }
