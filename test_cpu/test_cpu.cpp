@@ -2,7 +2,11 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cassert>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <memory>
+#include <string>
 
 #include <bus.h>
 #include <cpu6502.h>
@@ -25,6 +29,21 @@ static void assert_eq(uint16_t actual, uint16_t expected, const char* test)
         std::println("[FAIL] {} - expected 0x{:04X}, got 0x{:04X}", test, expected, actual);
         std::exit(1);
     }
+}
+
+static void assert_true(bool condition, const char* test)
+{
+    if(!condition)
+    {
+        std::println("[FAIL] {}", test);
+        std::exit(1);
+    }
+}
+
+static std::string read_file(const std::filesystem::path& path)
+{
+    std::ifstream file(path, std::ios::binary);
+    return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 }
 
 // ---- setup helper ----
@@ -578,7 +597,49 @@ static void test_disassembler_stop_at_0xFFFF()
     std::println("[PASS] test_disassembler_stop_at_0xFFFF ({} lines)", r.size());
 }
 
-int main()
+static void test_cli_disasm_invalid_hex(const std::filesystem::path& test_exe)
+{
+    namespace fs = std::filesystem;
+#ifdef _WIN32
+    const auto cli_path = test_exe.parent_path() / "6502cli.exe";
+#else
+    const auto cli_path = test_exe.parent_path() / "6502cli";
+#endif
+    const auto temp_dir = fs::temp_directory_path() / "6502_cli_tests";
+    const auto rom_path = temp_dir / "invalid_hex.bin";
+    const auto invalid_stdout_path = temp_dir / "invalid_hex.stdout";
+    const auto invalid_stderr_path = temp_dir / "invalid_hex.stderr";
+    const auto ffff_stdout_path = temp_dir / "ffff.stdout";
+    const auto ffff_stderr_path = temp_dir / "ffff.stderr";
+
+    fs::create_directories(temp_dir);
+    assert_true(fs::exists(cli_path), "CLI test executable must exist");
+
+    {
+        std::ofstream rom(rom_path, std::ios::binary);
+        const char program[] = { '\xEA' };
+        rom.write(program, sizeof(program));
+    }
+
+    const std::string invalid_command = "\"" + cli_path.string() + "\" disasm \"" + rom_path.string() + "\" INVALID >\"" + invalid_stdout_path.string() + "\" 2>\"" + invalid_stderr_path.string() + "\"";
+    const int invalid_status = std::system(invalid_command.c_str());
+    assert_true(invalid_status != 0, "CLI disasm invalid hex should exit non-zero");
+    assert_true(read_file(invalid_stderr_path).find("Invalid hex address") != std::string::npos, "CLI disasm invalid hex should print an error");
+
+    const std::string ffff_command = "\"" + cli_path.string() + "\" disasm \"" + rom_path.string() + "\" FFFF >\"" + ffff_stdout_path.string() + "\" 2>\"" + ffff_stderr_path.string() + "\"";
+    const int ffff_status = std::system(ffff_command.c_str());
+    assert_true(ffff_status == 0, "CLI disasm FFFF should clamp the default stop address");
+    assert_true(read_file(ffff_stderr_path).empty(), "CLI disasm FFFF should not print an error");
+
+    fs::remove(rom_path);
+    fs::remove(invalid_stdout_path);
+    fs::remove(invalid_stderr_path);
+    fs::remove(ffff_stdout_path);
+    fs::remove(ffff_stderr_path);
+    std::println("[PASS] test_cli_disasm_invalid_hex");
+}
+
+int main(int argc, char* argv[])
 {
     std::println("=== 6502 CPU Unit Tests ===\n");
 
@@ -611,6 +672,7 @@ int main()
     test_disassembler_start_gt_stop();
     test_disassembler_start_eq_stop();
     test_disassembler_stop_at_0xFFFF();
+    test_cli_disasm_invalid_hex(std::filesystem::absolute(argv[0]));
 
     std::println("\n=== ALL TESTS PASSED ===");
 
