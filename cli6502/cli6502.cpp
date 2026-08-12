@@ -147,9 +147,25 @@ int main(int argc, char* argv[])
     int retVal = 0;
     if(cmd == "disasm")
     {
-        const uint16_t start = (spanArg.size() >= 4) ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 3), nullptr, 16)) : 0x8000;
-        const uint16_t stop = (spanArg.size() >= 5) ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 4), nullptr, 16)) : gsl::narrow<uint16_t>(start + 0x00FF);
-        retVal = disasm(start, stop, bus, file);
+        uint16_t start = 0x8000;
+        uint16_t stop = 0x80FF;
+        try
+        {
+            start = (spanArg.size() >= 4) ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 3), nullptr, 16)) : 0x8000;
+            stop = (spanArg.size() >= 5)
+                ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 4), nullptr, 16))
+                : gsl::narrow<uint16_t>(std::min(static_cast<uint32_t>(start) + 0x00FFu, 0xFFFFu));
+        }
+        catch(const std::exception& e)
+        {
+            std::println(stderr, "Error: Invalid hex address: {}", e.what());
+            retVal = 1;
+        }
+
+        if(retVal == 0)
+        {
+            retVal = disasm(start, stop, bus, file);
+        }
     }
     else if(cmd == "run")
     {
