@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstdio>
+#include <iostream>
 #include <print>
 #include <string>
 #include <fstream>
@@ -147,9 +148,17 @@ int main(int argc, char* argv[])
     int retVal = 0;
     if(cmd == "disasm")
     {
-        const uint16_t start = (spanArg.size() >= 4) ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 3), nullptr, 16)) : 0x8000;
-        const uint16_t stop = (spanArg.size() >= 5) ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 4), nullptr, 16)) : gsl::narrow<uint16_t>(start + 0x00FF);
-        retVal = disasm(start, stop, bus, file);
+        try
+        {
+            const uint16_t start = (spanArg.size() >= 4) ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 3), nullptr, 16)) : 0x8000;
+            const uint16_t stop = (spanArg.size() >= 5) ? gsl::narrow<uint16_t>(std::stoul(gsl::at(spanArg, 4), nullptr, 16)) : gsl::narrow<uint16_t>(start + 0x00FF);
+            retVal = disasm(start, stop, bus, file);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << "Error: Invalid hex address: " << e.what() << "\n";
+            retVal = 1;
+        }
     }
     else if(cmd == "run")
     {
